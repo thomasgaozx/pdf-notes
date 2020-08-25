@@ -1,2 +1,6 @@
 test*
 *.html
+*.jpg
+*.svg
+*.pyc
+**/__pycache__/

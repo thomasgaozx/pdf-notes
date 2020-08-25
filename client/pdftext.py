@@ -35,8 +35,12 @@ b. perform te user-defined replace operation
 c. replace all uncommon unicode characters with latex variables, using unimap.json
 """
 
+import os
 import re
 import json
+
+def get_config_path(conf_file):
+    return os.path.join(os.getcwd(), 'client', conf_file)
 
 verbose = [ True ]
 
@@ -44,15 +48,14 @@ def debug(*args):
     if verbose[0]:
         print(*args)
 
-
 # init global variables
-with open("unimap.json") as _unimap:
+with open(get_config_path("unimap.json")) as _unimap:
     unimap = json.load(_unimap)
 
-with open("conf.json") as _conf:
+with open(get_config_path("conf.json")) as _conf:
     _info = json.load(_conf)
 
-with open("inlinemath.json") as _imath:
+with open(get_config_path("inlinemath.json")) as _imath:
     _inline_math_regex = json.load(_imath)
 
 init_patch = _info['patch1']
@@ -189,15 +192,17 @@ class Markdown:
         """ Step 4: apply user patch"""
         self._patch(custom_patch)
         self._patch((k, unimap[k]) for k in unimap)
-        
-        with open('test.txt', mode='w+', encoding="utf-8") as f:
-            f.write(self.raw_text)
+
+        return self.raw_text        
+        # with open('test.txt', mode='w+', encoding="utf-8") as f:
+        #     f.write(self.raw_text)
 
 
 
 
 ## Testing Area
-Markdown("""
+if __name__ == "__main__":
+    Markdown("""
 80 CHAPTER 1 / REGULAR LANGUAGES
 To use the pumping lemma to prove that a language B is not regular, first as-
 sume that B is regular in order to obtain a contradiction. Then use the pumping
@@ -338,7 +343,7 @@ eBook and/or eChapter(s). Editorial review has deemed that any suppressed conten
 content at any time if subsequent rights restrictions require it.
 
 
-""").format_md()
+    """).format_md()
 
 # class RawTextProcessor:
 #     def __init__(self):

@@ -6,20 +6,28 @@ let _WAIT_STATE = 1;
 let _DONE_STATE = 2;
 
 let _cur_state = _IDLE_STATE;
-var _x00, _y00, _x11, _y11, _sel__context, _sel_board;
+var _x00, _y00, _x11, _y11, _sel__context, _sel_board, _sel__scaling, _sel__endpnt;
 
 window.onload = function() {
+    load_toolbar_button("TXT", "croptext");
+    load_toolbar_button("SVG", "cropsvg");
+    load_toolbar_button("JPG", "cropjpeg");
+}
+
+function load_toolbar_button(__bt_txt, __endpt) {
     _sel_button_toolbar = document.createElement("button");
     _sel_button_toolbar.setAttribute("class", "toolbarButton");
     _sel_button_toolbar.setAttribute("title", "Select area to process");
-    _sel_button_toolbar.setAttribute("onclick", "create_sel_board_overlay()");
-    _sel_button_toolbar.setAttribute("id", "sel_board_tool_");
-    _sel_button_toolbar.innerText = "SEL";
+    _sel_button_toolbar.setAttribute("onclick", `create_sel_board_overlay('${__endpt}')`);
+    //_sel_button_toolbar.setAttribute("id", "sel_board_tool_");
+    _sel_button_toolbar.innerText = __bt_txt;
     document.getElementById("toolbarViewerRight").appendChild(_sel_button_toolbar);
 }
 
-function create_sel_board_overlay() {
+function create_sel_board_overlay(__endpt) {
     var _vport = PDFViewerApplication.pdfViewer._getCurrentVisiblePage().views[0].view.viewport;
+    _sel__scaling = _vport.scale;
+    _sel__endpnt = __endpt
     var _wdth = _vport.width;//Math.floor(_vport.width);
     var _heit = _vport.height; //Math.floor(_vport.height);
     _create_sel_board(PDFViewerApplication.pdfViewer.currentPageNumber, _wdth, _heit);
@@ -65,7 +73,23 @@ window.addEventListener('mouseup', e => {
 window.addEventListener('keydown', e => {
     if (e.key == 'Enter') {
         if (_cur_state == _DONE_STATE) {
-            console.log([_x00, _y00, _x11, _y11]);
+            console.log("x0,y0, x1,y1")
+            console.log([_x00, _y00, _x11, _y11].map(e => e/_sel__scaling));
+
+            ___x = Math.floor(_x00/_sel__scaling);
+            ___y = Math.floor(_y00/_sel__scaling);
+            ___w = Math.ceil(Math.abs(_x11-_x00)/_sel__scaling);
+            ___h = Math.ceil(Math.abs(_y11-_y00)/_sel__scaling);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:10002", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({
+                endpoint : _sel__endpnt,
+                xywh : [___x, ___y, ___w, ___h],
+                page : PDFViewerApplication.pdfViewer.currentPageNumber
+            }));
+
             document.getElementById(_SEL__ID).remove();
             //document.getElementById("sel_board_tool_").disabled=false;
             _cur_state = _IDLE_STATE;

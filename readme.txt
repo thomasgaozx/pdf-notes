@@ -3,9 +3,9 @@ FROM ubuntu
 docker ps -a
 docker images
 docker images -a
-docker images
-docker run -ti --rm alpine:3.4 /bin/sh
-docker run -ti --rm ubuntu:20.04
+
+docker run -ti --rm thomasgaozx/survival:0.2 /bin/sh
+docker run -ti --rm thomasgaozx/survival:0.2
 
 docker build -t name/image:version .
 docker rmi $(docker images -q --filter "dangling=true")
@@ -37,3 +37,42 @@ pip3 install pdfminer
 pdf2txt.py -p 192,193 -o out.html test.pdf
 pdftotext -f 578 -l 579 -enc UTF-8 algo.pdf
 pdftotext -f 68 -l 68 -enc UTF-8 test.pdf
+
+
+pip3 install Pillow numpy
+
+pdftotext -f 49 -l 49 -x 50 -y 364 -W 355 -H 138 -raw -layout -enc UTF-8 test.pdf
+pdftocairo -svg -f 49 -l 49 -x 50 -y 364 -W 355 -H 138 test.pdf
+pdftocairo -svg -f 49 -l 49 -x 50 -y 364 -W 355 -H 138 -paperw 355 -paperh 138 test.pdf
+
+pdftocairo -jpeg -singlefile -r 72 -cropbox -f 49 -l 49 -x 50 -y 364 -W 355 -H 138 test.pdf garbage
+
+pdftocairo -pdf -f 49 -l 49 -x 50 -y 364 -W 355 -H 138 test.pdf garbage.pdf
+pdftotext -raw -layout -enc UTF-8 garbage.pdf
+
+docker run -ti -p 10001:80 --rm thomasgaozx/survival:0.3
+docker run -ti -p 10001:80 --rm thomasgaozx/survival:0.5
+localhost:10001
+requests.post("http://localhost:10001/croptext", data={"xywh":[1,2,3,4], "page":3})
+requests.post("http://localhost:10001/croptext", json={"xywh":[9,2,3,4], "page":3})
+
+pdftotext file.pdf - | less
+
+
+import socket
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket.bind(('172.17.0.2', 80))
+server_socket.recvfrom(1024)
+
+
+import socket
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client_socket.settimeout(1.0)
+addr = ("192.168.65.2", 10001)
+client_socket.sendto(b"test", addr)
+
+python -m client
+
+C:\\ProgramData\\Anaconda3\\python -m client
