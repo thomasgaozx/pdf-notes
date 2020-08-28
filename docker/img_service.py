@@ -103,7 +103,7 @@ class PdfPage:
 
 app = Flask(__name__)
 pdf = "test.pdf"
-#CORS(app)
+#CORS(app) #no longer necessary
 
 ### Working with pdf.js
 @app.route('/status', methods=['GET'])
