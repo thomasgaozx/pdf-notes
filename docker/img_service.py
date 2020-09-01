@@ -1,3 +1,20 @@
+"""
+Copyright (C) 2020 Thomas Gao <thomasgaozx@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+======================================================================
+"""
 import subprocess
 import os
 import re
@@ -90,16 +107,6 @@ class PdfPage:
         pr = subprocess.call(
             "pdftotext -raw -layout -enc UTF-8 {} {}".format(GARBAGE+".pdf", GARBAGE+".txt"),
             shell=True, timeout=10)
-
-
-### Testing area
-
-# print(PdfPage("test.pdf", 49).get_pt_dimension())
-# print(PdfPage("test.pdf", 49).get_pixel_dimension())
-# print(PdfPage("test.pdf", 49).crop_svg(50, 364, 355, 138))
-# print(PdfPage("test.pdf", 49).crop_jpeg(50, 364, 355, 138))
-# print(PdfPage("test.pdf", 49).crop_text(50, 364, 355, 138))
-# print(PdfPage("test.pdf", 49).crop_jpeg(0, 0, 459, 666))
 
 app = Flask(__name__)
 pdf = "test.pdf"

@@ -4,3 +4,8 @@ test*
 *.svg
 *.pyc
 **/__pycache__/
+pdf.js/build
+pdf.js/web
+client/config/*.pdf**json
+cache2.txt
+*.lnk

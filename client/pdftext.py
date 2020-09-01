@@ -1,4 +1,21 @@
 """
+Copyright (C) 2020 Thomas Gao <thomasgaozx@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+======================================================================
+
 The goal is to convert raw pdf text into reasonably organized markdown structure,
 with maximal amount of user customization permitted. The customization is provided
 as config file (for now), and may evolve into a database later.
@@ -38,9 +55,10 @@ c. replace all uncommon unicode characters with latex variables, using unimap.js
 import os
 import re
 import json
+from .configuration import BaseConfiguration # for testing
 
 def get_config_path(conf_file):
-    return os.path.join(os.getcwd(), 'client', conf_file)
+    return os.path.join(os.getcwd(), 'client', 'config', conf_file)
 
 verbose = [ True ]
 
@@ -49,20 +67,22 @@ def debug(*args):
         print(*args)
 
 # init global variables
-with open(get_config_path("unimap.json")) as _unimap:
+with open(get_config_path("unimap.json"), encoding="utf-8") as _unimap:
     unimap = json.load(_unimap)
 
-with open(get_config_path("conf.json")) as _conf:
-    _info = json.load(_conf)
+with open(get_config_path("inlinemath.json"), encoding="utf-8") as _imath:
+    inline_math_regex = json.load(_imath)
 
-with open(get_config_path("inlinemath.json")) as _imath:
-    _inline_math_regex = json.load(_imath)
+# init pdf-specific configuration
+# global_configuration = GlobalConfiguration()
+# with open(get_config_path("config/conf.json"), encoding="utf-8") as _conf:
+#     _info = json.load(_conf)
 
-init_patch = _info['patch1']
-inline_math_regex = _inline_math_regex
-auto_subscript_enabled = True                 #TODO: read this from GUI? at run time
-subscript_var = ["q", "w", "\u03b4"]     #TODO: read this from GUI? at run time
-custom_patch = []                             #TODO: read this from GUI? at run time
+
+#init_patch = _info['patch1']
+#auto_subscript_enabled = True                 #TODO: read this from GUI? at run time
+#subscript_var = ["q", "w", "\u03b4"]     #TODO: read this from GUI? at run time
+#custom_patch = []                             #TODO: read this from GUI? at run time
 
 # constants
 PARAGRAPH_END = [ '.', ':' ]
@@ -96,9 +116,10 @@ def repl_subscript(_match):
     return "{}_\\{}{{{}}}".format(s[0], ESCAPE_SEQ, s[1:])
 
 class Markdown:
-    def __init__(self, raw_text):
+    def __init__(self, raw_text, conf):
         self.raw_text = raw_text
         self.ol = None # tracks current ordered number
+        self.conf = conf
 
     def _patch(self, _list):
         for _from, _to in _list:
@@ -106,7 +127,7 @@ class Markdown:
 
     def format_md(self):
         """ Step 1: patch bad characters """
-        self._patch(init_patch)
+        self._patch(self.conf.bad_symbol_patch)
 
         """ Step 2: restructuring"""
         lines = [ l.strip() for l in self.raw_text.split('\n') ]
@@ -173,8 +194,9 @@ class Markdown:
                 formatted = detected.replace('{','\\{').replace('}','\\}').replace('#', '\\#')
 
                 # handle subscript
-                if auto_subscript_enabled:
-                    var_sub_exprs = [ re.compile(r"{}((?!{})[A-Za-zΑ-Ωα-ω\d\+\-])+".format(v,v)) for v in subscript_var ]
+                if self.conf.auto_subscript:
+                    var_sub_exprs = [ re.compile(r"{}((?!{})[A-Za-zΑ-Ωα-ω\d\+\-])+".format(v,v))
+                        for v in self.conf.subscript_vars ]
                     for var_sub in var_sub_exprs:
                         formatted = var_sub.sub(repl_subscript, formatted)
 
@@ -190,7 +212,7 @@ class Markdown:
         
         
         """ Step 4: apply user patch"""
-        self._patch(custom_patch)
+        self._patch(self.conf.custom_patch)
         self._patch((k, unimap[k]) for k in unimap)
 
         return self.raw_text        
@@ -343,7 +365,7 @@ eBook and/or eChapter(s). Editorial review has deemed that any suppressed conten
 content at any time if subsequent rights restrictions require it.
 
 
-    """).format_md()
+    """, BaseConfiguration()).format_md()
 
 # class RawTextProcessor:
 #     def __init__(self):

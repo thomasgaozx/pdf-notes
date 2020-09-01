@@ -1,0 +1,12 @@
+{
+    "badsymbol": [
+        [ "ﬁ", "fi" ],
+        [ ". . .", "..." ]
+      ],
+    "patch": [],
+    "formuladetect": true,
+    "autosubscript": true,
+    "subscriptvars": ["q", "w"],
+    "notes": "./test.md",
+    "imgserver": "default"
+}
